@@ -1,4 +1,4 @@
-# Untitled-1.py
+# tutorial_01.py
 # hello worldを出力する
 
 def main():
