@@ -6,7 +6,7 @@ from pathlib import Path
 # === パス設定 ===
 BASE_DIR = Path(__file__).resolve().parent.parent  # 1階層上（20251019_test）
 DATA_DIR = BASE_DIR / "data"
-CUSTOMERS_CSV = DATA_DIR / "customers.csv"
+CUSTOMERS_CSV = DATA_DIR / "customers__preview.csv"
 
 # === CSV読み込み ===
 print(f"📂 読み込み中: {CUSTOMERS_CSV}")
