@@ -1,0 +1,81 @@
+{
+    "name": "契約集計入力",
+    "version": "1.0.0",
+    "format": {
+        "filetype": "csv",
+        "encoding": "utf-8",
+        "delimiter": ",",
+        "header": true
+    },
+    "primaryKey": [
+        "証券記号番号"
+    ],
+    "fields": [
+        {
+            "name": "氏名コード",
+            "type": "string",
+            "required": true,
+            "logicalType": "zeroPad7"
+        },
+        {
+            "name": "成績年月",
+            "type": "string",
+            "required": true,
+            "logicalType": "yearMonth"
+        },
+        {
+            "name": "保険金",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        },
+        {
+            "name": "保険料",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        },
+        {
+            "name": "件数",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int16"
+        },
+        {
+            "name": "新規契約フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "更改フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "解約フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "カク職表示",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "チャネル区分",
+            "type": "string",
+            "required": true
+        }
+    ]
+}
