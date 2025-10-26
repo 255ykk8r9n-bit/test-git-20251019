@@ -36,6 +36,13 @@
             "required": true,
             "nullable": false,
             "pandasType": "Int64"
+        },
+        {
+            "name": "新規契約修Ｓ",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
         }
     ]
 }

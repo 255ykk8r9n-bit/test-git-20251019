@@ -18,4 +18,4 @@ def register_tables_from_config(con: duckdb.DuckDBPyConnection, config_path: Pat
         if src_type.lower() != "csv":
             raise ValueError(f"Unsupported source_type: {src_type} for table {name}")
         con.register(name, df)
-        print(f"✅ Registered table '{name}' ({len(df):,} rows)")
+        print(f"✅ Registered table '{name}' ({len(df):,} レコード)")

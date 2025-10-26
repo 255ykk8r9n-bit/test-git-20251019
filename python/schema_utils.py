@@ -28,7 +28,6 @@ def _build_read_csv_kwargs(schema: dict):
     # まず全列は文字列で読み込んでから整形するのが安全（型崩れ防止）
     names = [f["name"] for f in schema["fields"]]
     if schema.get("format", {}).get("header") is False:
-        # ヘッダーなしCSVの場合、列名を0始まりのインデックスにマッピング
         return {
             "dtype": {col: "string" for col in names},
             "usecols": names,
@@ -75,9 +74,9 @@ def _coerce_types(df: pd.DataFrame, schema: dict) -> pd.DataFrame:
                 if ptype is None:
                     raise ValueError(f"[schema] pandasType required for integer field '{name}'")
                 target = ptype
-                df[name] = pd.to_numeric(df[name], errors="raise").astype(target)
+                df[name] = pd.to_numeric(df[name], errors="coerce").astype(target)
             elif ftype == "number":
-                df[name] = pd.to_numeric(df[name], errors="raise")
+                df[name] = pd.to_numeric(df[name], errors="cource")
             elif ftype == "string":
                 df[name] = df[name].astype("string")
 
@@ -109,6 +108,8 @@ def _validate(df: pd.DataFrame, schema: dict):
         if required and name not in df.columns:
             errors.append(f"[schema] required column missing: {name}")
             continue
+        if name not in df.columns:
+            continue  # 必須ではない列が無ければスキップ
 
         s = df[name]
 
@@ -170,16 +171,6 @@ def read_with_schema(csv_path: str, schema_path: str) -> pd.DataFrame:
     df = _coerce_types(df, schema)
     _validate(df, schema)
     return df
-
-def apply_schema(df: pd.DataFrame, schema: dict) -> pd.DataFrame:
-    """
-    @未使用
-    DataFrame に対してスキーマ(dict)を適用する。
-    型変換とバリデーションを行い、新しい DataFrame を返す。
-    """
-    if not isinstance(schema, dict):
-        raise TypeError("schema must be a dict")
-    return _coerce_types(df, schema)  # _coerce_types 内で検証エラーは集約されるので、そのまま返す
 
 def apply_schema_from_path(df: pd.DataFrame, schema_path: str) -> pd.DataFrame:
     """
