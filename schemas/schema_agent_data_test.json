@@ -1,0 +1,41 @@
+{
+    "name": "agent_data_test",
+    "version": "1.0.0",
+    "format": {
+        "filetype": "csv",
+        "encoding": "utf-8",
+        "delimiter": ",",
+        "header": true
+    },
+    "primaryKey": [
+        "氏名コード","成績年月"
+    ],
+    "fields": [
+        {
+            "name": "氏名コード",
+            "type": "string",
+            "required": true,
+            "logicalType": "zeroPad7"
+        },
+        {
+            "name": "成績年月",
+            "type": "string",
+            "required": true,
+            "logicalType": "yearMonth"
+        },
+        {
+            "name": "総修Ｓ",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        },
+        {
+            "name": "総収入Ｐ",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        }
+    ]
+}

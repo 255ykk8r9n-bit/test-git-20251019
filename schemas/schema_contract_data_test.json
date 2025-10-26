@@ -1,5 +1,5 @@
 {
-    "name": "契約集計入力",
+    "name": "contract_data_test",
     "version": "1.0.0",
     "format": {
         "filetype": "csv",
