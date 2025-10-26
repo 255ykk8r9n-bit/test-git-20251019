@@ -19,6 +19,23 @@ def _lit(val):
     s = str(val).replace("'", "''")
     return f"'{s}'"
 
+
+def load_process(path: str | Path) -> dict:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"process_prm file not found: {path}") from e
+    except PermissionError as e:
+        raise PermissionError(f"Permission denied reading process_prm file: {path}") from e
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in process_prm file {path}: {e.msg} (line {e.lineno} col {e.colno})") from e
+    except OSError as e:
+        raise OSError(f"Failed to read process_prm file {path}: {e}") from e
+    if not isinstance(data, dict):
+        raise TypeError(f"process_prm root must be a JSON object (dict), got {type(data).__name__}")
+    return data
+
 def _build_where(where_specs: list[dict]) -> str:
     parts = []
     for w in where_specs or []:
@@ -36,7 +53,8 @@ def _build_where(where_specs: list[dict]) -> str:
             parts.append(f"{col} {op} {_lit(w['value'])}")
     return "" if not parts else "WHERE " + " AND ".join(parts)
 
-def build_duckdb_sql_from_process(proc: dict) -> str:
+def build_duckdb_sql_from_process(path: str) -> str:
+    proc = load_process(path)
     src = _q_ident(proc["source"])
     # SELECT句
     selects = []
@@ -49,20 +67,20 @@ def build_duckdb_sql_from_process(proc: dict) -> str:
         if fn not in _ALLOWED_FUNCS:
             raise ValueError(f"Unsupported aggregation: {fn}")
         expr = _q_ident(a["expr"])
-        alias = _q_ident(a.get("alias", f"{fn}_{a['expr']}"))
+        alias = _q_ident(a["alias"])
         selects.append(f"{fn}({expr}) AS {alias}")
 
     select_sql = ",\n    ".join(selects)
     where_sql  = _build_where(proc.get("where"))
     # GROUP BY
-    gb_cols = ", ".join(str(i+1) for i in range(len(proc["group_by"])))  # 位置指定(1-based)
+    gb_cols = ", ".join(_q_ident(c) for c in proc["group_by"])
     group_sql = f"GROUP BY {gb_cols}" if gb_cols else ""
     # ORDER BY
     order_specs = proc.get("order_by") or []
     if order_specs:
         ob_parts = []
         for ob in order_specs:
-            expr = ob["expr"]  # 1, 2 などの位置指定 or 列名
+            expr = ob["expr"] 
             if str(expr).isdigit():
                 expr_sql = expr
             else:
@@ -85,7 +103,3 @@ FROM {src}
 {limit_sql}
 """.strip()  # 余計な空行はDuckDBは気にしませんが整形
     return sql
-
-def load_process(path: str | Path) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)

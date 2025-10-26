@@ -10,8 +10,8 @@
     {"column": "成績年月", "op": ">=", "value": "202501"} 
   ],
   "order_by": [
-    {"expr": "1", "asc": true},
-    {"expr": "2", "asc": true}
+    {"expr": "氏名コード", "asc": true},
+    {"expr": "成績年月", "asc": true}
   ],
   "limit": null
 }
