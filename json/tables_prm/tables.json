@@ -1,0 +1,10 @@
+{
+  "tables": [
+    {
+      "name": "契約ファイル",
+      "source_type": "csv",
+      "path": "data/contract_data_test_10rec_noheader.csv",
+      "schema": "schemas/schema_contract_data_test_noheader.json"
+    }
+  ]
+}

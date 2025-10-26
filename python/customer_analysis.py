@@ -4,6 +4,8 @@ import pandas as pd
 import json
 from pathlib import Path
 from schema_utils import read_with_schema, apply_schema_from_path
+from tables_config_utils import register_tables_from_config
+from sql_generate_utils import build_duckdb_sql_from_process
 import sys
 import traceback
 import time
@@ -13,15 +15,19 @@ def main():
     # === パス設定 ===
     BASE_DIR = Path(__file__).resolve().parent.parent  # 1階層上（20251019_test）
     DATA_DIR = BASE_DIR / "data"
-    SCHEMA_DIR = BASE_DIR / "schemas"
+    SCHEMA_DIR = BASE_DIR / "json" / "schemas"
+    PROCESS_PRM_DIR = BASE_DIR / "json" / "process_prm"
+    TABLES_PRM_DIR = BASE_DIR / "json" / "tables_prm"
 
-    # INPUT_CSV = DATA_DIR / "contract_data_test_10rec.csv"
     INPUT_CSV = DATA_DIR / "contract_data_test_10rec_noheader.csv"
-    # SCHEMA_JSON_INP = SCHEMA_DIR / "schema_contract_data_test.json"
     SCHEMA_JSON_INP = SCHEMA_DIR / "schema_contract_data_test_noheader.json"
 
     OUTPUT_CSV = DATA_DIR / "agent_data_test.csv"
     SCHEMA_JSON_OUT = SCHEMA_DIR / "schema_agent_data_test.json"
+
+    PROCESS_PRM = PROCESS_PRM_DIR / "process_contract_to_agent.json"
+    TABLES_PRM = TABLES_PRM_DIR / "tables.json"
+
 
     start_all = time.perf_counter()  # 総処理開始タイムスタンプ
 
@@ -56,19 +62,13 @@ def main():
     con = None
     try:
         con = duckdb.connect()
-        con.register("契約ファイル", df)
+        register_tables_from_config(con, TABLES_PRM, df)
 
         t1 = time.perf_counter()
-        sql_result_tmp = con.sql("""
-            SELECT
-                "氏名コード",
-                "成績年月",
-                SUM("修Ｓ")   AS "総修Ｓ",
-                SUM("収入Ｐ") AS "総収入Ｐ"
-            FROM "契約ファイル"
-            GROUP BY 1, 2
-            ORDER BY 1, 2
-        """).df()
+        sql = build_duckdb_sql_from_process(str(PROCESS_PRM))
+        print(f"📋 実行SQL:\n{sql}\n")
+
+        sql_result_tmp = con.sql(sql).df()
         t_sql = time.perf_counter() - t1
 
         t1 = time.perf_counter()
