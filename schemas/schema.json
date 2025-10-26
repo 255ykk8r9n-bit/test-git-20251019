@@ -24,6 +24,11 @@
             "logicalType": "yearMonth"
         },
         {
+            "name": "証券記号番号",
+            "type": "string",
+            "required": true
+        },
+        {
             "name": "保険金",
             "type": "integer",
             "required": true,

@@ -121,7 +121,12 @@ def _validate(df: pd.DataFrame, schema: dict):
 def read_with_schema(csv_path: str, schema_path: str) -> pd.DataFrame:
     schema = load_schema(schema_path)
     read_kwargs = _build_read_csv_kwargs(schema)
-    df = pd.read_csv(csv_path, **read_kwargs)
+    try:
+        df = pd.read_csv(csv_path, **read_kwargs)
+    except ValueError as e:
+        # pandas の usecols 等による読み込み時エラーを検知して
+        # スキーマ検証エラーとして統一的なメッセージで再送出する
+        raise ValueError("required column missing or CSV reading error: " + str(e))
     df = _coerce_types(df, schema)
     _validate(df, schema)
     return df
