@@ -4,8 +4,25 @@ import pandas as pd
 
 
 def load_schema(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Schema file not found: {path}") from e
+    except PermissionError as e:
+        raise PermissionError(f"Permission denied reading schema file: {path}") from e
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in schema file {path}: {e.msg} (line {e.lineno} col {e.colno})") from e
+    except OSError as e:
+        raise OSError(f"Failed to read schema file {path}: {e}") from e
+
+    if not isinstance(data, dict):
+        raise TypeError(f"Schema root must be a JSON object (dict), got {type(data).__name__}")
+
+    if "fields" not in data or not isinstance(data["fields"], list):
+        raise ValueError("Schema must contain a 'fields' array")
+
+    return data
 
 def _build_read_csv_kwargs(schema: dict):
     # まず全列は文字列で読み込んでから整形するのが安全（型崩れ防止）
@@ -144,3 +161,46 @@ def read_with_schema(csv_path: str, schema_path: str) -> pd.DataFrame:
     df = _coerce_types(df, schema)
     _validate(df, schema)
     return df
+
+def apply_schema(df: pd.DataFrame, schema: dict) -> pd.DataFrame:
+    """
+    @未使用
+    DataFrame に対してスキーマ(dict)を適用する。
+    型変換とバリデーションを行い、新しい DataFrame を返す。
+    """
+    if not isinstance(schema, dict):
+        raise TypeError("schema must be a dict")
+    return _coerce_types(df, schema)  # _coerce_types 内で検証エラーは集約されるので、そのまま返す
+
+def apply_schema_from_path(df: pd.DataFrame, schema_path: str) -> pd.DataFrame:
+    """
+    スキーマファイルパスを指定して DataFrame にスキーマ適用するラッパー。
+    例外をキャッチしてコンテキスト付きで再送出する。
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("df must be a pandas DataFrame")
+
+    try:
+        schema = load_schema(schema_path)
+    except Exception as e:
+        # load_schema は細かい例外を投げるのでそれらをまとめてわかりやすくする
+        raise ValueError(f"Failed to load schema from '{schema_path}': {e}") from e
+
+    try:
+        coerced = _coerce_types(df, schema)
+    except ValueError as e:
+        # 型変換や明示的な検証エラー
+        raise ValueError(f"Type coercion failed when applying schema '{schema_path}': {e}") from e
+    except Exception as e:
+        # 想定外の例外
+        raise RuntimeError(f"Unexpected error during type coercion for schema '{schema_path}': {e}") from e
+
+    try:
+        _validate(coerced, schema)
+    except ValueError as e:
+        # バリデーションエラーをコンテキスト付きで再送出
+        raise ValueError(f"Schema validation failed for '{schema_path}': {e}") from e
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error during validation for schema '{schema_path}': {e}") from e
+
+    return coerced
