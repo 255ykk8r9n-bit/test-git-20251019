@@ -18,32 +18,32 @@
             "logicalType": "zeroPad7"
         },
         {
+            "name": "証券記号番号",
+            "type": "string",
+            "required": true
+        },
+        {
             "name": "成績年月",
             "type": "string",
             "required": true,
             "logicalType": "yearMonth"
         },
         {
-            "name": "証券記号番号",
-            "type": "string",
-            "required": true
-        },
-        {
-            "name": "保険金",
+            "name": "修Ｓ",
             "type": "integer",
             "required": true,
             "nullable": false,
             "pandasType": "Int64"
         },
         {
-            "name": "保険料",
+            "name": "収入Ｐ",
             "type": "integer",
             "required": true,
             "nullable": false,
             "pandasType": "Int64"
         },
         {
-            "name": "件数",
+            "name": "計上件数",
             "type": "integer",
             "required": true,
             "nullable": false,
@@ -64,7 +64,7 @@
             "logicalType": "booleanInt"
         },
         {
-            "name": "解約フラグ",
+            "name": "被保険者新規フラグ",
             "type": "integer",
             "required": true,
             "pandasType": "Int8",

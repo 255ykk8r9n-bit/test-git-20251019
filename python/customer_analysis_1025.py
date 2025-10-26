@@ -4,6 +4,8 @@ import pandas as pd
 import json
 from pathlib import Path
 from schema_utils import read_with_schema
+import sys
+import traceback
 
 
 # === パス設定 ===
@@ -18,7 +20,24 @@ print(f"📂 読み込み中(CSV): {CUSTOMERS_CSV}")
 print(f"📂 読み込み中(Schema): {SCHEMA_JSON}")
 
 # === スキーマに基づきCSV読み込み＆バリデーション ===
-df = read_with_schema(CUSTOMERS_CSV, SCHEMA_JSON)
+
+try:
+    df = read_with_schema(CUSTOMERS_CSV, SCHEMA_JSON)
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("read_with_schema が pandas.DataFrame を返しませんでした")
+except FileNotFoundError as e:
+    print(f"❌ ファイルが見つかりません: {e}")
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"❌ スキーマ(JSON)の読み込みに失敗しました: {e}")
+    sys.exit(1)
+except (ValueError, TypeError) as e:
+    print(f"❌ 入力データの検証に失敗しました: {e}")
+    sys.exit(1)
+except Exception as e:
+    print("❌ 不明なエラーが発生しました:")
+    traceback.print_exc()
+    sys.exit(1)
 
 print(f"✅ データ件数: {len(df):,}件\n")
 

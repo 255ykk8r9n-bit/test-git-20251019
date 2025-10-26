@@ -17,36 +17,53 @@ def _build_read_csv_kwargs(schema: dict):
     }
 
 def _coerce_types(df: pd.DataFrame, schema: dict) -> pd.DataFrame:
+    df = df.copy()
+    errors = []
+
     for field in schema["fields"]:
         name = field["name"]
-        ftype = field["type"]
-        ptype = field.get("pandasType")
-        logical = field.get("logicalType")
+        try:
+            if name not in df.columns:
+                continue
 
-        # 前処理（トリム）
-        if name in df.columns and pd.api.types.is_string_dtype(df[name]):
-            df[name] = df[name].str.strip()
+            ftype = field["type"]
+            ptype = field.get("pandasType")
+            logical = field.get("logicalType")
 
-        # logicalType の処理
-        if logical == "zeroPad7":
-            df[name] = df[name].str.zfill(7)
-        if logical == "yearMonth":
-            # "YYYYMM" を Period や datetime-like にするならここで
-            # df[name+"_period"] = pd.PeriodIndex(df[name], freq="M")  # 必要なら追加列化
-            pass
+            # 前処理（トリム）
+            if pd.api.types.is_string_dtype(df[name]):
+                df[name] = df[name].str.strip()
 
-        # 型変換
-        if ftype == "integer":
-            target = ptype or "Int64"
-            df[name] = pd.to_numeric(df[name], errors="coerce").astype(target)
-        elif ftype == "number":
-            df[name] = pd.to_numeric(df[name], errors="coerce")
-        elif ftype == "string":
-            df[name] = df[name].astype("string")
+            # logicalType の処理
+            if logical == "zeroPad7":
+                # 安全のため一旦 string に変換してから zfill
+                df[name] = df[name].astype("string").str.zfill(7)
+            if logical == "yearMonth":
+                # "YYYYMM" を Period や datetime-like にするならここで
+                # df[name+"_period"] = pd.PeriodIndex(df[name], freq="M")  # 必要なら追加列化
+                pass
 
-        # enum を category にしておくと便利
-        if "enum" in field and ftype == "string":
-            df[name] = pd.Categorical(df[name], categories=field["enum"])
+            # 型変換
+            if ftype == "integer":
+                # pandasType が指定されていなければエラーにする
+                if ptype is None:
+                    raise ValueError(f"[schema] pandasType required for integer field '{name}'")
+                target = ptype
+                df[name] = pd.to_numeric(df[name], errors="raise").astype(target)
+            elif ftype == "number":
+                df[name] = pd.to_numeric(df[name], errors="raise")
+            elif ftype == "string":
+                df[name] = df[name].astype("string")
+
+            # enum を category にしておくと便利
+            if "enum" in field and ftype == "string":
+                df[name] = pd.Categorical(df[name], categories=field["enum"])
+
+        except Exception as e:
+            errors.append(f"[coerce] {name}: {e}")
+
+    if errors:
+        raise ValueError("Type coercion failed:\n- " + "\n- ".join(errors))
 
     return df
 
@@ -65,9 +82,6 @@ def _validate(df: pd.DataFrame, schema: dict):
 
         if required and name not in df.columns:
             errors.append(f"[schema] required column missing: {name}")
-            continue
-
-        if name not in df.columns:
             continue
 
         s = df[name]
