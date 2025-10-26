@@ -1,0 +1,17 @@
+{
+  "source": "契約ファイル",
+  "version": "1.0",
+  "group_by": ["氏名コード", "成績年月"],
+  "aggregations": [
+    {"fn": "SUM", "expr": "修Ｓ",   "alias": "総修Ｓ"},
+    {"fn": "SUM", "expr": "収入Ｐ", "alias": "総収入Ｐ"}
+  ],
+  "where": [
+    {"column": "成績年月", "op": ">=", "value": "202501"} 
+  ],
+  "order_by": [
+    {"expr": "1", "asc": true},
+    {"expr": "2", "asc": true}
+  ],
+  "limit": null
+}
