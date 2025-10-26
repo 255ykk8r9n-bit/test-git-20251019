@@ -1,0 +1,86 @@
+{
+    "name": "contract_data_test",
+    "version": "1.0.0",
+    "format": {
+        "filetype": "csv",
+        "encoding": "utf-8",
+        "delimiter": ",",
+        "header": false
+    },
+    "primaryKey": [
+        "証券記号番号"
+    ],
+    "fields": [
+        {
+            "name": "氏名コード",
+            "type": "string",
+            "required": true,
+            "logicalType": "zeroPad7"
+        },
+        {
+            "name": "証券記号番号",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "成績年月",
+            "type": "string",
+            "required": true,
+            "logicalType": "yearMonth"
+        },
+        {
+            "name": "修Ｓ",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        },
+        {
+            "name": "収入Ｐ",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int64"
+        },
+        {
+            "name": "計上件数",
+            "type": "integer",
+            "required": true,
+            "nullable": false,
+            "pandasType": "Int16"
+        },
+        {
+            "name": "新規契約フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "更改フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "被保険者新規フラグ",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "カク職表示",
+            "type": "integer",
+            "required": true,
+            "pandasType": "Int8",
+            "logicalType": "booleanInt"
+        },
+        {
+            "name": "チャネル区分",
+            "type": "string",
+            "required": true
+        }
+    ]
+}

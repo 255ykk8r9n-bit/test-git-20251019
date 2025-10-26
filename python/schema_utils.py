@@ -26,12 +26,21 @@ def load_schema(path: str) -> dict:
 
 def _build_read_csv_kwargs(schema: dict):
     # まず全列は文字列で読み込んでから整形するのが安全（型崩れ防止）
-    usecols = [f["name"] for f in schema["fields"]]
-    return {
-        "dtype": {col: "string" for col in usecols},
-        "usecols": usecols,
-        "encoding": schema.get("format", {}).get("encoding", "utf-8"),
-    }
+    names = [f["name"] for f in schema["fields"]]
+    if schema.get("format", {}).get("header") is False:
+        # ヘッダーなしCSVの場合、列名を0始まりのインデックスにマッピング
+        return {
+            "dtype": {col: "string" for col in names},
+            "usecols": names,
+            "encoding": schema.get("format", {}).get("encoding", "utf-8"),
+            "header": None,
+            "names": names,}   
+    else:
+        return {
+            "dtype": {col: "string" for col in names},
+            "usecols": names,
+            "encoding": schema.get("format", {}).get("encoding", "utf-8"),
+        }
 
 def _coerce_types(df: pd.DataFrame, schema: dict) -> pd.DataFrame:
     df = df.copy()
